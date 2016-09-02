@@ -1,7 +1,12 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2010-2011 Apple Inc. All rights reserved.
+# Copyright (c) 2010-2012 Apple Inc. All rights reserved.
 # 
+# IMPORTANT NOTE: This file is licensed only for use on Apple-branded
+# computers and is subject to the terms and conditions of the Apple Software
+# License Agreement accompanying the package this file is a part of.
+# You may not port this file to another platform without Apple's written consent.
+#
 # Redistribution and use in source and binary forms, with or without  
 # modification, are permitted provided that the following conditions  
 # are met:
@@ -55,7 +60,7 @@ my $CVT_MAIL_DATA = "/usr/bin/cvt_mail_data";
 my $TAR = "/usr/bin/tar";
 
 ################################## Consts ###################################
-my $MIGRATION_LOG= "/Library/Logs/MailMigration.log";
+my $MIGRATION_LOG= "/Library/Logs/Migration/mailmigrator.log";
 
 ################################## Globals ##################################
 my @g_clean_partitions	= ();

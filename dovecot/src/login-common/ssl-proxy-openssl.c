@@ -204,7 +204,7 @@ static int apple_password_callback (char *in_buf, int in_size, int in_rwflag ATT
 	struct apple_password_ctx *ctx;
 	struct io *io;
 	struct timeout *timeout;
-	char *certadmin = "/usr/sbin/certadmin";
+	char *certadmin = "/Applications/Server.app/Contents/ServerRoot/usr/sbin/certadmin";
 
 	if (cb_data == NULL || strlen(cb_data->key) == 0 ||
 	    cb_data->len >= FILENAME_MAX || cb_data->len == 0 ||
@@ -980,12 +980,9 @@ static void ssl_proxy_unref(struct ssl_proxy *proxy)
 
 	SSL_free(proxy->ssl);
 
-	/* APPLE fixed memory leak */
-	if (proxy->last_error != NULL)
-		i_free(proxy->last_error);
-
 	if (proxy->client != NULL)
 		client_unref(&proxy->client);
+	i_free(proxy->last_error);
 	i_free(proxy);
 }
 
@@ -1068,7 +1065,7 @@ static int ssl_verify_client_cert(int preverify_ok, X509_STORE_CTX *ctx)
 	proxy->cert_received = TRUE;
 
 	if (proxy->set->verbose_ssl ||
-	    (proxy->set->verbose_auth && !preverify_ok)) {
+	    (proxy->set->auth_verbose && !preverify_ok)) {
 		char buf[1024];
 		X509_NAME *subject;
 
@@ -1161,8 +1158,10 @@ ssl_proxy_ctx_init(SSL_CTX *ssl_ctx, const struct login_settings *set)
 	X509_STORE *store;
 	STACK_OF(X509_NAME) *xnames = NULL;
 
-	SSL_CTX_set_options(ssl_ctx, (SSL_OP_ALL &		/* APPLE */
-	    ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS) | SSL_OP_NO_SSLv2);
+	/* enable all SSL workarounds, except empty fragments as it
+	   makes SSL more vulnerable against attacks */
+	SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
+			    (SSL_OP_ALL & ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS));
 #ifdef SSL_MODE_RELEASE_BUFFERS
     SSL_CTX_set_mode(ssl_ctx, SSL_MODE_RELEASE_BUFFERS);
 #endif
@@ -1213,51 +1212,46 @@ static const char *ssl_proxy_get_use_certificate_error(const char *cert)
 	}
 }
 
-static EVP_PKEY *ssl_proxy_load_key(const struct login_settings *set)
+static EVP_PKEY *
+#ifdef APPLE_OS_X_SERVER
+ssl_proxy_load_key(const char *key, const char *password, const char *path)
+#else
+ssl_proxy_load_key(const char *key, const char *password)
+#endif
 {
 	EVP_PKEY *pkey;
 	BIO *bio;
-	const char *password;
 	char *dup_password;
 
-	bio = BIO_new_mem_buf(t_strdup_noconst(set->ssl_key),
-			      strlen(set->ssl_key));
+	bio = BIO_new_mem_buf(t_strdup_noconst(key), strlen(key));
 	if (bio == NULL)
 		i_fatal("BIO_new_mem_buf() failed");
 
-	password = *set->ssl_key_password != '\0' ? set->ssl_key_password :
-		getenv(MASTER_SSL_KEY_PASSWORD_ENV);
 	dup_password = t_strdup_noconst(password);
 
 #ifdef APPLE_OS_X_SERVER
 	pkey = NULL;
-	if ( strlen( set->ssl_key_path ) < FILENAME_MAX )
-	{
-		if ( s_user_data == NULL )
-		{
+	if (path == NULL)
+		/* ignore it */ ;
+	else if ( strlen( path ) < FILENAME_MAX ) {
+		if ( s_user_data == NULL ) {
 			s_user_data = malloc( sizeof(CallbackUserData) );
-			if ( s_user_data != NULL )
-			{
+			if ( s_user_data != NULL ) {
 				memset( s_user_data, 0, sizeof(CallbackUserData) );
 			}
 		}
 
-		if ( s_user_data != NULL )
-		{
-			i_snprintf( s_user_data->key, FILENAME_MAX, "%s", set->ssl_key_path );
+		if ( s_user_data != NULL ) {
+			i_snprintf( s_user_data->key, FILENAME_MAX, "%s", path );
 			s_user_data->len = strlen( s_user_data->key );
 
 			pkey = PEM_read_bio_PrivateKey(bio, NULL,
 			    apple_password_callback, s_user_data);
+		} else {
+			i_info( "Could not set custom callback for: %s", path );
 		}
-		else
-		{
-			i_info( "Could not set custom callback for: %s", set->ssl_key_path );
-		}
-	}
-	else
-	{
-		i_info( "Key file path too big for custom callback for: %s", set->ssl_key_path );
+	} else {
+		i_info( "Key file path too big for custom callback for: %s", path );
 	}
 
 	if (pkey == NULL)
@@ -1284,8 +1278,15 @@ static const char *ssl_key_load_error(void)
 static void ssl_proxy_ctx_use_key(SSL_CTX *ctx, const struct login_settings *set)
 {
 	EVP_PKEY *pkey;
+	const char *password;
 
-	pkey = ssl_proxy_load_key(set);
+	password = *set->ssl_key_password != '\0' ? set->ssl_key_password :
+		getenv(MASTER_SSL_KEY_PASSWORD_ENV);
+#ifdef APPLE_OS_X_SERVER
+	pkey = ssl_proxy_load_key(set->ssl_key, password, set->ssl_key_path);
+#else
+	pkey = ssl_proxy_load_key(set->ssl_key, password);
+#endif
 	if (SSL_CTX_use_PrivateKey(ctx, pkey) != 1)
 		i_fatal("Can't load private ssl_key: %s", ssl_key_load_error());
 	EVP_PKEY_free(pkey);
@@ -1428,6 +1429,32 @@ static void ssl_server_context_deinit(struct ssl_server_context **_ctx)
 	pool_unref(&ctx->pool);
 }
 
+static void
+ssl_proxy_client_ctx_set_client_cert(SSL_CTX *ctx,
+				     const struct login_settings *set)
+{
+	EVP_PKEY *pkey;
+
+	if (*set->ssl_client_cert == '\0')
+		return;
+
+	if (ssl_proxy_ctx_use_certificate_chain(ctx, set->ssl_client_cert) != 1) {
+		i_fatal("Can't load ssl_client_cert: %s",
+			ssl_proxy_get_use_certificate_error(set->ssl_client_cert));
+	}
+
+#ifdef APPLE_OS_X_SERVER
+	pkey = ssl_proxy_load_key(set->ssl_client_key, NULL, NULL);
+#else
+	pkey = ssl_proxy_load_key(set->ssl_client_key, NULL);
+#endif
+	if (SSL_CTX_use_PrivateKey(ctx, pkey) != 1) {
+		i_fatal("Can't load private ssl_client_key: %s",
+			ssl_key_load_error());
+	}
+	EVP_PKEY_free(pkey);
+}
+
 static void ssl_proxy_init_client(const struct login_settings *set)
 {
 	STACK_OF(X509_NAME) *xnames;
@@ -1436,6 +1463,8 @@ static void ssl_proxy_init_client(const struct login_settings *set)
 		i_fatal("SSL_CTX_new() failed");
 	xnames = ssl_proxy_ctx_init(ssl_client_ctx, set);
 	ssl_proxy_ctx_verify_client(ssl_client_ctx, xnames);
+
+	ssl_proxy_client_ctx_set_client_cert(ssl_client_ctx, set);
 }
 
 void ssl_proxy_init(void)

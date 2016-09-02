@@ -1,4 +1,4 @@
-/* Copyright (c) 2002-2011 Pigeonhole authors, see the included COPYING file
+/* Copyright (c) 2002-2012 Pigeonhole authors, see the included COPYING file
  */
 
 #include "lib.h"
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 				break;
 			}
 											
-			if ( sieve_script_file_has_extension(dp->d_name) ) {
+			if ( sieve_scriptfile_has_extension(dp->d_name) ) {
 				const char *file;
 				
 				if ( scriptfile[strlen(scriptfile)-1] == '/' )

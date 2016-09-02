@@ -1,4 +1,4 @@
-/* Copyright (c) 2002-2011 Pigeonhole authors, see the included COPYING file
+/* Copyright (c) 2002-2012 Pigeonhole authors, see the included COPYING file
  */
  
 #include "lib.h"
@@ -41,8 +41,15 @@ const char *sieve_error_script_location
 
 	sname = ( script == NULL ? NULL : sieve_script_name(script) );
 
-	if ( sname == NULL || *sname == '\0' )
+	if ( sname == NULL || *sname == '\0' ) {
+		if ( source_line == 0 )
+			return NULL;
+
 		return t_strdup_printf("line %d", source_line);
+	}
+
+	if ( source_line == 0 )
+		return sname;
 
 	return t_strdup_printf("%s: line %d", sname, source_line);
 }
@@ -482,7 +489,7 @@ unsigned int sieve_get_warnings(struct sieve_error_handler *ehandler)
 {
 	if ( ehandler == NULL || ehandler->pool == NULL ) return 0;
 
-	return ehandler->errors;
+	return ehandler->warnings;
 }
 
 bool sieve_errors_more_allowed(struct sieve_error_handler *ehandler) 

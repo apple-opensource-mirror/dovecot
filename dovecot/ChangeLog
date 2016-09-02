@@ -1,8 +1,539 @@
+2012-03-15  Timo Sirainen  <tss@iki.fi>
+
+	* .hgsigs:
+	Added signature for changeset 4b680f5055c7
+	[e34205766fec] [tip]
+
+	* .hgtags:
+	Added tag 2.0.19 for changeset 4b680f5055c7
+	[7705801cf079]
+
+	* NEWS, configure.in:
+	Released v2.0.19.
+	[4b680f5055c7] [2.0.19]
+
+2012-03-14  Timo Sirainen  <tss@iki.fi>
+
+	* src/anvil/penalty.c:
+	anvil: s/memcpy/memmove/ for updating checksum list. This may have
+	caused anvil to update penalties wrong.
+	[8fe5568e2b00]
+
+	* src/config/doveconf.c:
+	doveconf: Dump protocol/local/remote sections even if there was an
+	error earlier. This allows getting a mostly-working config file
+	rather than a truncated one.
+	[7aaca0f14164]
+
+2012-03-12  Timo Sirainen  <tss@iki.fi>
+
+	* Makefile.am:
+	Makefile: Delete dovecot-config on distclean
+	[769fa1dddbf1]
+
+2012-03-11  Timo Sirainen  <tss@iki.fi>
+
+	* Makefile.am:
+	Makefile: Fixed compiling with automake 1.11.2+
+	[c87d16875905]
+
+2012-03-10  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/mbox/mbox-sync.c:
+	mbox: Fixed accessing v1.x mbox index files without errors.
+	[dc88712581c9]
+
+	* src/doveadm/doveadm.c:
+	doveadm config: Don't fail on invalid config (e.g. plugin not found)
+	This command is often used in init scripts and such to stop/restart
+	Dovecot.
+	[28ab44c4eb49]
+
+2012-03-04  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-mail/rfc822-parser.c:
+	lib-mail: rfc822_parse_quoted_string() didn't remove '\' from the
+	strings.
+	[d850e6254cdc]
+
+	* src/lib-storage/index/index-storage.c:
+	lib-storage: If mailbox is already open in mailbox_enable(), enable
+	modseqs.
+	[b6de838fac0e]
+
+	* src/lib-storage/index/index-storage.c:
+	lib-storage: mailbox_enable() shouldn't actually open the mailbox.
+	This combined with mailbox_get_status() never synced the mailbox, so
+	if there were any changes they weren't visible in STATUS reply.
+	[b207e0b155bd]
+
+2012-02-29  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/list/mailbox-list-fs-iter.c:
+	fs layout: Crashfix to previous change.
+	[06555bd6d938]
+
+2012-02-28  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/list/mailbox-list-fs-iter.c:
+	fs layout: Mailbox listing returned duplicates when patterns
+	contained a parent and its children. This is an ugly patch to fix at
+	least the most obvious cases. It's fixed properly in v2.1 code.
+	[8f0c49f98e07]
+
+2012-02-25  Timo Sirainen  <tss@iki.fi>
+
+	* src/imap-login/client.c, src/imap-login/imap-login-settings.c, src
+	/imap-login/imap-login-settings.h:
+	imap-login: imap_id_* settings were ignored pre-login.
+	[b7e5a83866a4]
+
+2012-02-21  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/dbox-single/sdbox-sync.c:
+	sdbox: Altmove flag changes weren't immediately marked as synced.
+	This caused the altmoves to be retried.
+	[f2e9b20e21f8]
+
+2012-02-15  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-master/ipc-client.c:
+	lib-master: Fixed crash on IPC client if server disconnected
+	unexpectedly.
+	[c402fb407501]
+
+2012-02-13  Timo Sirainen  <tss@iki.fi>
+
+	* src/pop3/pop3-commands.c:
+	pop3: If UIDL using %f/%m/%g can't be fetched, mention
+	pop3_uidl_format in error message.
+	[8e1cab0b9374]
+
+2012-02-12  Timo Sirainen  <tss@iki.fi>
+
+	* .hgsigs:
+	Added signature for changeset 346526718aad
+	[b887225ff2a1]
+
+	* .hgtags:
+	Added tag 2.0.18 for changeset 346526718aad
+	[6f45de67e785]
+
+	* NEWS, configure.in:
+	Released v2.0.18.
+	[346526718aad] [2.0.18]
+
+	* src/lib-storage/index/index-thread-finish.c:
+	Make static analyzer happier.
+	[cb23eb573b50]
+
+	* src/master/main.c:
+	master: If instance_name doesn't begin with "dovecot", add
+	"dovecot-" prefix to process names.
+	[0b5076a69909]
+
+	* src/dsync/dsync-worker-local.c:
+	dsync: Don't assert-crash if saving a message fails.
+	[eed2b8fb2a52]
+
+	* src/lib-mail/message-id.c, src/lib-mail/test-message-id.c:
+	message_id_get_next(): Fixed parsing message-ids with no-fold-
+	quotes.
+	[71dbe30caedb]
+
+	* src/login-common/ssl-proxy-openssl.c:
+	SSL: Enable SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS flag for extra
+	security. This is to counter the "BEAST SSL" attack, although I
+	don't think it's practical to implement against IMAP/POP3/LMTP
+	protocols. There's really no way for attackers to inject any evil
+	data before authentication, so the password is safe. Post-
+	authentication attacker could cause clients to download evil emails,
+	but even then clients don't typically redownload some specific mail,
+	so there's really no way to extract anything useful.
+	[e3d46fd04105]
+
+2012-02-09  Timo Sirainen  <tss@iki.fi>
+
+	* src/dsync/dsync-worker-local.c:
+	dsync: Fixed a potential assert crash when saving mails.
+	[8228f09ab0c2]
+
+	* src/lib-storage/index/dbox-multi/mdbox-save.c, src/lib-storage/index
+	/dbox-single/sdbox-save.c:
+	dbox: If saving is aborted, don't add a broken record about it to
+	index.
+	[425b62b59405]
+
+	* src/plugins/quota/quota.c:
+	quota: If "quota" setting's value is empty, assume quota is wanted
+	to be disabled.
+	[cca57b6f9fa1]
+
+	* src/plugins/snarf/snarf-plugin.c:
+	snarf: Keep the mailbox locked during snarfing to avoid duplicates.
+	[76220f2b5966]
+
+	* src/lib-master/master-service.c:
+	lib-master no longer uses 's' option, but it wasn't removed from
+	getopt string.
+	[750db4b4c7d3]
+
+	* INSTALL:
+	INSTALL: Updated outdated documentation.
+	[77fb3606fb2b]
+
+	* src/imap/imap-commands-util.c:
+	imap: Fixed potential out of bounds read. Found by Christoph
+	Bussenius.
+	[d406e376f8ee]
+
+	* src/doveadm/doveadm-mail-index.c:
+	doveadm index: Changed help text to make it clear that mailbox can
+	have wildcards.
+	[77a45b0c9f68]
+
+	* src/lib-storage/index/shared/shared-storage.c:
+	lib-storage: Trying to access shared mailboxes of nonexistent users
+	crashed. This was broken by commit 18078d6cce84.
+	[09f964850245]
+
+	* src/lib-storage/index/dbox-multi/mdbox-file.c, src/lib-storage/index
+	/dbox-multi/mdbox-map.c:
+	mdbox: Fixed finding appendable m.* files in alt storage.
+	[d83356f1fce6]
+
+	* src/lib-storage/index/dbox-multi/mdbox-storage-rebuild.c:
+	mdbox: Detect duplicate GUIDs for different messages. Don't delete
+	these duplicates. Only the message size is used for detecting if
+	they are duplicates or not, but since this shouldn't normally happen
+	anyway this is good enough.
+	[4a0b7dec3a22]
+
+	* src/lib-storage/index/dbox-multi/mdbox-storage-rebuild.c:
+	mdbox: Small code cleanup to storage rebuild.
+	[a2ac502ee05f]
+
+	* src/lib-storage/index/dbox-multi/mdbox-storage-rebuild.c:
+	mdbox: Avoid deferencing NULL pointer in specific corrupted
+	mailboxes.
+	[8339ffff1efe]
+
+	* src/lib-storage/index/dbox-multi/mdbox-file.c, src/lib-storage/index
+	/dbox-single/sdbox-file.c:
+	dbox: Never rename() mail files over existing files. If such a file
+	exists, rebuild indexes.
+	[550929ff244c]
+
+2012-02-01  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/dbox-single/sdbox-sync.c:
+	sdbox: Fixed moving files from alt storage to primary storage.
+	[dcc19b00e748]
+
+2012-01-29  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/dbox-multi/mdbox-storage-rebuild.c:
+	mdbox: Don't lose save_dates when rebuilding indexes.
+	[c30ea8aec902]
+
+2012-01-28  Timo Sirainen  <tss@iki.fi>
+
+	* src/imap/imap-search.c:
+	imap: CONTEXT search return option wasn't handled at all.
+	[fd16e200f0f7]
+
+	* src/lib-sql/driver-sqlpool.c:
+	sql: Fixed retrying query when multiple hosts were specified and all
+	of them got disconnected.
+	[4e7676b890f1]
+
+	* src/lib-storage/index/index-thread-finish.c:
+	lib-storage: Thread iteration no longer returns dummy nodes without
+	children. This fixes returning (0) nodes to IMAP client.
+	[57498cad6ab9]
+
+2012-01-27  Timo Sirainen  <tss@iki.fi>
+
+	* dovecot-config.in.in:
+	dovecot-config: Added missing lib-dns and lib-fs to
+	LIBDOVECOT_INCLUDE
+	[352bc0c6e0c9]
+
+	* src/lib-storage/index/dbox-single/sdbox-file.c:
+	sdbox: Preserve file's atime/mtime when moving it to alt storage.
+	[5eb5c9b9d88b]
+
+	* doc/example-config/conf.d/10-mail.conf:
+	example-config: mdbox_rotate_interval default was wrong.
+	[ac8b3da5dd07]
+
+	* src/imap-login/imap-proxy.c, src/pop3-login/client-authenticate.c,
+	src/pop3-login/pop3-proxy.c:
+	login: More verbose_auth -> auth_verbose changes.
+	[0873e08cc65c]
+
+	* src/login-common/login-settings.c, src/login-common/login-
+	settings.h:
+	login: If auth_debug_passwords=yes, assume
+	auth_debug/auth_verbose=yes
+	[95fc6d9525ce]
+
+	* src/login-common/client-common-auth.c, src/login-common/login-
+	settings.c, src/login-common/login-settings.h, src/login-common
+	/sasl-server.c, src/login-common/ssl-proxy-openssl.c:
+	login process wasn't logging all intended messages with
+	auth_verbose=yes It was named verbose_auth setting accidentally.
+	[f320e8e760e1]
+
+2012-01-25  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/index-mail.c:
+	lib-storage: Message size lookups from cache was broken if fields
+	weren't in "normal" order in file.
+	[cf3687721d02]
+
+2012-01-24  Timo Sirainen  <tss@iki.fi>
+
+	* src/plugins/zlib/istream-bzlib.c, src/plugins/zlib/istream-zlib.c:
+	zlib: Getting stream's size failed in some situations. This could
+	have caused other trouble, such as with dbox + mail_attachment_dir.
+	[9b2931607063]
+
+2012-01-20  Timo Sirainen  <tss@iki.fi>
+
+	* doc/example-config/dovecot.conf, src/master/main.c, src/master
+	/master-settings.c, src/master/master-settings.h:
+	master: Added instance_name setting, which is used to prefix
+	processes in ps output.
+	[759e879c4c42]
+
+	* src/plugins/notify/notify-plugin.c:
+	notify plugin: Don't crash if user-plugin didn't set mailbox_rename.
+	Patch by Ewald Dieterich.
+	[d9499e268883]
+
+2012-01-18  Timo Sirainen  <tss@iki.fi>
+
+	* src/master/service-monitor.c:
+	master: Show the process_limit / client_limit value when logging
+	that it's been reached.
+	[687949948a83]
+
+2012-01-17  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-lda/lmtp-client.c:
+	lib-lda: Fixed LMTP client hanging on sending large mails.
+	[71084b799a6c]
+
+	* src/auth/mech-digest-md5.c:
+	auth: DIGEST-MD5 supports authorization id now. Patch by Yubao Liu.
+	[847ca219989d]
+
+	* src/auth/mech-digest-md5.c:
+	auth: DIGEST-MD5 didn't read nonce-count parameter correctly. Patch
+	by Yubao Liu.
+	[525a179f324f]
+
+2012-01-10  Timo Sirainen  <tss@iki.fi>
+
+	* src/login-common/client-common-auth.c:
+	login proxy: If server disconnects during auth, log the connection
+	duration.
+	[8438f66433a6]
+
+2012-01-09  Timo Sirainen  <tss@iki.fi>
+
+	* src/master/service-process.c:
+	master: "Out of memory" message shows now the service {} block
+	around vsz_limit.
+	[656386359374]
+
+	* src/auth/auth.c:
+	auth: Check also masterdbs when checking if auth mechanism can be
+	used. Patch by Yubao Liu
+	[bed15faedfd4]
+
+	* src/lib-lda/lmtp-client.c:
+	lib-lda: Make lmtp_client_state_to_string() more verbose.
+	[5b8b296239a5]
+
+2012-01-06  Timo Sirainen  <tss@iki.fi>
+
+	* .hgsigs:
+	Added signature for changeset 53cccb1b4168
+	[38972af8bd29]
+
+	* .hgtags:
+	Added tag 2.0.17 for changeset 53cccb1b4168
+	[7c592f93aa14]
+
+	* NEWS, configure.in:
+	Released v2.0.17.
+	[53cccb1b4168] [2.0.17]
+
+	* src/auth/auth-request-handler.c:
+	auth: If master_user is specified by userdb, don't add another one
+	to reply. The one specified by userdb should have overridden the
+	other one though.
+	[684381041dc4]
+
+2012-01-04  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-index/mail-index-sync-keywords.c, src/lib-index/mail-index-
+	sync.c, src/lib-index/mail-transaction-log-view.c:
+	lib-index: Avoid assert-crashing on keyword-update record with empty
+	keyword.
+	[5ef791398c8c]
+
+2012-01-03  Timo Sirainen  <tss@iki.fi>
+
+	* src/dsync/dsync-worker-local.c:
+	dsync: Don't log unnecessary errors about not being able to delete
+	\Noselect mailbox dirs.
+	[69c6d7436f7f]
+
+	* src/login-common/client-common.h:
+	imap-login: LOGIN_MAX_INBUF_SIZE was too small, because of SASL-IR
+	extension
+	[d06061408f6d]
+
+2011-12-20  Timo Sirainen  <tss@iki.fi>
+
+	* src/util/script-login.c:
+	script-login -d: Ignore chrooting, we can't exec anything inside
+	chroot.
+	[49a77e9dad66]
+
+	* src/util/script-login.c:
+	script-login: Close extra fds to avoid failing with --enable-devel-
+	checks.
+	[728c54eade74]
+
+	* src/lib-dict/dict-file.c:
+	dict-file: Updated dotlock settings.
+	[4016e43d648f]
+
+2011-12-19  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/dbox-single/sdbox-storage.c:
+	sdbox: Added support for autodetection.
+	[e1fc2ab5e9f9]
+
+2011-12-16  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/index-storage.c:
+	FS layout: When deleting a mailbox, don't give an error if mailbox
+	has children. The mailbox got successfully deleted, but it still
+	gave an error.
+	[4ea24cabfd88]
+
+2011-12-10  Timo Sirainen  <tss@iki.fi>
+
+	* src/plugins/zlib/ostream-bzlib.c, src/plugins/zlib/ostream-zlib.c:
+	zlib: Avoid assert-crashing if parent ostream's write had failed
+	earlier.
+	[75daa638281b]
+
+2011-12-09  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib/var-expand.c:
+	var_expand(): Added %{uid} and %{gid} variables.
+	[af6d0858e64b]
+
+2011-12-08  Timo Sirainen  <tss@iki.fi>
+
+	* src/auth/main.c:
+	auth: If verbose_proctitle=yes, show which processes are auth
+	workers.
+	[8ab42b468353]
+
+	* src/lmtp/commands.c:
+	lmtp: If lmtp_save_to_detail_mailbox=yes and there was no detail,
+	mail was logged as saved to "".
+	[6d188f4e8e6a]
+
+	* src/lib-storage/list/mailbox-list-fs-iter.c:
+	lib-storage: Reverted the last INBOX children listing change after
+	all.
+	[13378136ba3e]
+
+	* src/lib-storage/list/mailbox-list-fs-iter.c:
+	lib-storage: Fixed listing INBOX's children with layout=fs and non-
+	mbox format.
+	[56618c35292a]
+
+	* src/lib-storage/mail-search-build.c:
+	lib-storage: Fixed assert-crash when search query contained ().
+	[ba68f9be07c4]
+
+2011-12-02  Timo Sirainen  <tss@iki.fi>
+
+	* src/auth/passdb-vpopmail.c:
+	auth: Fixed vpopmail to work again after recent change.
+	[42a7ba0adafe]
+
+2011-11-23  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib/file-cache.c:
+	file_cache_set_size(): Cleanup properly after mmap() failure.
+	[a8c2e04307c6]
+
+	* src/lib-index/mail-index-modseq.c, src/lib-index/mail-index-sync.c,
+	src/lib-index/mail-index-view-sync.c, src/lib-index/mail-
+	transaction-log.h:
+	lib-index: Handle transaction log read errors separately from log
+	corruption.
+	[28544b4191f3]
+
+2011-11-22  Timo Sirainen  <tss@iki.fi>
+
+	* src/lib-storage/index/dbox-multi/mdbox-save.c:
+	mdbox: Don't assert-crash when having to open mail file during
+	specific copying situations.
+	[26f503adf42d]
+
+2011-11-21  Timo Sirainen  <tss@iki.fi>
+
+	* src/doveadm/Makefile.am, src/doveadm/doveadm-dump-dbox.c,
+	src/doveadm/doveadm-dump.c, src/doveadm/doveadm-dump.h:
+	doveadm dump: Added support for dumping dbox headers/metadata.
+	[f02465f112aa]
+
+	* src/lib-storage/index/dbox-common/dbox-file.h:
+	dbox: Compiler warning fix if trying to include dbox-file.h
+	directly.
+	[aba065995389]
+
+	* src/lib/hex-dec.c:
+	hex2dec(): Allow data to contain also lowercase hex characters.
+	[719f39116494]
+
+2011-11-18  Timo Sirainen  <tss@iki.fi>
+
+	* src/auth/auth-master-connection.c, src/auth/auth-request-handler.c,
+	src/auth/auth-request.c, src/auth/auth-request.h:
+	auth: Don't allow auth clients to set internal auth request fields.
+	This could have allowed attacker to bypass authentication if login
+	process was first successfully attacked to allow arbitrary code
+	execution.
+	[a28757b3f97a]
+
+	* src/login-common/login-settings.c, src/login-common/login-
+	settings.h, src/login-common/ssl-proxy-openssl.c:
+	login proxy: Added ssl_client_cert/key settings. The client cert is
+	used sent to proxy destination server when SSL is used.
+	[0c1e9bc8bc19]
+
 2011-11-17  Timo Sirainen  <tss@iki.fi>
+
+	* src/login-common/ssl-proxy-openssl.c:
+	login: Fixed a memory leak when SSL client connection was closed
+	uncleanly.
+	[7cc727b4c269]
 
 	* .hgsigs:
 	Added signature for changeset 7a321a6a96d9
-	[e93b1044f59e] [tip]
+	[e93b1044f59e]
 
 	* .hgtags:
 	Added tag 2.0.16 for changeset 7a321a6a96d9

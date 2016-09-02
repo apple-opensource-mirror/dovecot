@@ -1,7 +1,12 @@
 #!/usr/bin/perl -Tw
 
-# Copyright (c) 2010-2011 Apple Inc. All rights reserved.
+# Copyright (c) 2010-2012 Apple Inc. All rights reserved.
 # 
+# IMPORTANT NOTE: This file is licensed only for use on Apple-branded
+# computers and is subject to the terms and conditions of the Apple Software
+# License Agreement accompanying the package this file is a part of.
+# You may not port this file to another platform without Apple's written consent.
+#
 # Redistribution and use in source and binary forms, with or without  
 # modification, are permitted provided that the following conditions  
 # are met:
@@ -80,7 +85,7 @@ if ($> != 0) {
 
 my $queue_dir = "/private/var/db/dovecot.fts.update";
 
-$ENV{PATH} = "/usr/bin:/bin:/usr/sbin:/sbin";
+$ENV{PATH} = "/usr/bin:/bin:/usr/sbin:/sbin:/Applications/Server.app/Contents/ServerRoot/usr/bin:/Applications/Server.app/Contents/ServerRoot/usr/sbin";
 delete $ENV{CDPATH};
 
 my $imappid;
@@ -89,7 +94,7 @@ my $from_imap;
 local $SIG{__DIE__} = \&imap_cleanup;
 
 # if fts is disabled, don't bother doing anything
-my $conf = `/usr/bin/doveconf -h mail_plugins`;
+my $conf = `/Applications/Server.app/Contents/ServerRoot/usr/bin/doveconf -h mail_plugins`;
 chomp $conf;
 my $noop = 0;
 unless (grep { $_ eq "fts" } split(/\s+/, $conf)) {
@@ -103,6 +108,10 @@ unless (grep { $_ eq "fts" } split(/\s+/, $conf)) {
 
 my $ok = 1;
 if (defined($opts{queued})) {
+	# apply hysteresis:  allow a few queuefiles to accumulate so launchd
+	# doesn't run us too-too often
+	sleep(10);
+
 	opendir(DIR, $queue_dir) or myfatal("$queue_dir: $!");
 	my @entries = readdir(DIR);
 	closedir(DIR);
@@ -223,7 +232,7 @@ sub update_fts
 	}
 
 	# start dovecot imap as the user
-	my @imapargv = ("/usr/libexec/dovecot/imap", "-u", $user);
+	my @imapargv = ("/Applications/Server.app/Contents/ServerRoot/usr/libexec/dovecot/imap", "-u", $user);
 	$imappid = open3(\*TO_IMAP, \*FROM_IMAP, \*FROM_IMAP, @imapargv);
 	if (!defined($imappid)) {
 		mywarn("$imapargv[0]: $!");

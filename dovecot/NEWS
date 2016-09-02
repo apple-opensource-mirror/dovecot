@@ -1,3 +1,37 @@
+v2.0.19 2012-03-15  Timo Sirainen <tss@iki.fi>
+
+	- IMAP: ENABLE CONDSTORE/QRESYNC + STATUS for a mailbox might not
+	  have seen latest external changes to it, like new mails.
+	- imap_id_* settings were ignored before login.
+	- doveadm altmove did too much work sometimes, retrying moves
+	  it had already done.
+	- mbox: Fixed accessing Dovecot v1.x mbox index files without errors.
+
+v2.0.18 2012-02-12  Timo Sirainen <tss@iki.fi>
+
+	+ DIGEST-MD5 authentication supports authorization id now.
+	  Patch by Yubao Liu
+	+ Added instance_name setting which is used to prefix Dovecot
+	  processes in ps output.
+	- LDA/LMTP: Sending a large mail via submission_host or via LMTP proxy
+	  may have caused a hang.
+	- Fixed dbox + mail_attachment_dir + zlib problems.
+	- Login processes weren't logging all intended messages with
+	  auth_verbose=yes
+	- IMAP: THREAD REFS sometimes returned invalid (0) nodes.
+	- IMAP: CONTEXT search return option wasn't handled at all.
+	- dbox: Various error handling fixes.
+	- snarf plugin: Keep the mailbox locked during snarfing to avoid
+	  duplicates.
+
+v2.0.17 2012-01-06  Timo Sirainen <tss@iki.fi>
+
+	+ Proxying now supports sending SSL client certificate to server with
+	  ssl_client_cert/key settings.
+	+ doveadm dump: Added support for dumping dbox headers/metadata.
+	- Fixed memory leaks in login processes with SSL connections
+	- vpopmail support was broken in v2.0.16
+
 v2.0.16 2011-11-17  Timo Sirainen <tss@iki.fi>
 
 	* VSZ limits weren't being enforced for any processes. On server with

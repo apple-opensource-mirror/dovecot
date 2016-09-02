@@ -26,5 +26,7 @@
 		<key>NumberOfFiles</key>
 		<integer>8192</integer>
 	</dict>
+	<key>PreventsSleep</key>
+	<true/>
 </dict>
 </plist>

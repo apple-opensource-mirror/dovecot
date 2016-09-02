@@ -1,4 +1,4 @@
-/* Copyright (c) 2002-2011 Pigeonhole authors, see the included COPYING file
+/* Copyright (c) 2002-2012 Pigeonhole authors, see the included COPYING file
  */
 
 #include "lib.h"
@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include <time.h>
 
-#define SIEVE_DEFAULT_PATH "~/.dovecot.sieve"
+#define SIEVE_DEFAULT_PATH "~/.dovecot."SIEVE_SCRIPT_FILEEXT
 
 #define MAX_DIR_CREATE_MODE 0770
 

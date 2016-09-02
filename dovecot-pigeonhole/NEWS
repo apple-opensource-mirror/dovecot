@@ -1,3 +1,20 @@
+v0.2.6 13-02-2012 Stephan Bosch <stephan@rename-it.nl>
+
+	* This release fixes unintentional behavior of the include extension. Included
+	  scriptnames with a name like "name.sieve" would implicitly map to a script
+	  file called "name.sieve" and not "name.sieve.sieve". Keep in mind that the
+	  .sieve file extension has no meaning from within the Sieve language. A Sieve
+	  script is always stored with an appended .sieve file extension, also when
+	  the name already ends with a .sieve suffix.
+	  IMPORTANT: Some installations have relied on this unintentional feature, so
+	  check your script includes for issues before upgrading. 
+	* Matched changes regarding auth_verbose setting in Dovecot. This means that
+	  this release will only compile against Dovecot v2.0.18. 
+	- Fixed problem in ManageSieve that caused it to omit a WARNINGS response code
+	  when the uploaded script compiled with warnings.
+	- Made sure that locations of Sieve error never report `line 0'.
+	- Fixed potential segfault occuring when interpreter initialization fails.	
+
 v0.2.5 19-11-2011 Stephan Bosch <stephan@rename-it.nl>
 
 	+ Sieve vacation extension: made discard message for implicit delivery more

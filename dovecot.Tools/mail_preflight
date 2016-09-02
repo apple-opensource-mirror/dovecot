@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-PARTITION_MAP_FILENAME = "/etc/dovecot/partition_map.conf"
+PARTITION_MAP_FILENAME = "/Library/Server/Mail/Config/dovecot/partition_map.conf"
 
 def get_partition_map
   partition_map = {}

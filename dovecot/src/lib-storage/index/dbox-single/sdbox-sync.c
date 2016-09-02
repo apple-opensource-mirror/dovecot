@@ -12,9 +12,17 @@ static void
 dbox_sync_file_move_if_needed(struct dbox_file *file,
 			      enum sdbox_sync_entry_type type)
 {
+	struct stat st;
 	bool move_to_alt = type == SDBOX_SYNC_ENTRY_TYPE_MOVE_TO_ALT;
 	bool deleted;
 
+	if (move_to_alt == dbox_file_is_in_alt(file) &&
+	    !move_to_alt) {
+		/* unopened dbox files default to primary dir.
+		   stat the file to update its location. */
+		(void)dbox_file_stat(file, &st);
+
+	}
 	if (move_to_alt != dbox_file_is_in_alt(file)) {
 		/* move the file. if it fails, nothing broke so
 		   don't worry about it. */
@@ -28,6 +36,7 @@ static void sdbox_sync_file(struct sdbox_sync_context *ctx,
 			    enum sdbox_sync_entry_type type)
 {
 	struct dbox_file *file;
+	enum modify_type modify_type;
 
 	switch (type) {
 	case SDBOX_SYNC_ENTRY_TYPE_EXPUNGE:
@@ -38,6 +47,13 @@ static void sdbox_sync_file(struct sdbox_sync_context *ctx,
 		break;
 	case SDBOX_SYNC_ENTRY_TYPE_MOVE_FROM_ALT:
 	case SDBOX_SYNC_ENTRY_TYPE_MOVE_TO_ALT:
+		/* update flags in the sync transaction, mainly to make
+		   sure that these alt changes get marked as synced
+		   and won't be retried */
+		modify_type = type == SDBOX_SYNC_ENTRY_TYPE_MOVE_TO_ALT ?
+			MODIFY_ADD : MODIFY_REMOVE;
+		mail_index_update_flags(ctx->trans, seq, modify_type,
+					DBOX_INDEX_FLAG_ALT);
 		file = sdbox_file_init(ctx->mbox, uid);
 		dbox_sync_file_move_if_needed(file, type);
 		dbox_file_unref(&file);
